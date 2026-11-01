@@ -26,10 +26,11 @@ class Library:
         if book is not None:
             if not book.is_borrowed:
                 book.is_borrowed = True
+                self.borrow_history.append(book)
                 print(f"You have borrowed '{book.title}'.")
-                self.borrowed_date = date.today()
-                self.due_date = self.borrowed_date + timedelta(days=14)
-                print(f"Borrowed on {self.borrowed_date} and due on {self.due_date}")
+                book.borrow_date = date.today()
+                book.due_date = book.borrow_date + timedelta(days=14)
+                print(f"Borrowed on {book.borrow_date} and due on {book.due_date}")
             else:
                 print(f"'{book.title}' is already borrowed.")
         else:
@@ -57,3 +58,61 @@ class Library:
                 print("Book is not currently borrowed")
         else:
             print("Book does not exist")
+
+
+    def buy_book(self, id):
+        book = self.search_ID(id)
+        if book is not None:
+            if book.is_borrowed:
+                print("Cannot purchase a borrowed book.")
+            else:
+                print(f"You have purchased '{book.title}' for ${book.price:.2f}.")
+                self.books.remove(book)
+                self.purchase_history.append(book)
+        else:
+            print("Book not found.")
+
+    def search_title(self, title):
+        for book in self.books:
+            if book.title.lower() == title.lower():
+                return book
+        return None
+
+    def seasonal_recommendations(self):
+        month = date.today().month
+        recommendations = []
+        if month == 12:
+             category = "Christmas"
+        elif month == 10:
+             category = "Halloween"
+        elif month == 8:
+            category = "Textbook"
+        else:
+            category = "General"
+        for book in self.books:
+            if book.category.lower() == category.lower():
+                recommendations.append(book)
+        return recommendations
+
+    def personalized_recommendations(self):
+        history = self.borrow_history + self.purchase_history
+        if not history:
+            return []
+        recommendations = []
+        category_counts = {
+            "Horror": 2,
+            "Textbook": 1,
+            "General": 3
+        }
+        for book in history:
+            category = book.category.lower()
+            if category in category_counts:
+                category_counts[category] += 1
+        else:
+            category_counts[category] = 1
+        max_count = max(category_counts.values())
+
+        for book in self.books:
+            if book.category.lower() in category_counts and category_counts[book.category.lower()] == max_count:
+                recommendations.append(book)
+        return recommendations
