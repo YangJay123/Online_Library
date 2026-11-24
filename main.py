@@ -39,9 +39,9 @@ def startGUI():
     filter_box = ttk.Combobox(
         filter_frame,
         textvariable=filter_var,
-        values=("All Books", "Available Books"),
+        values=("All Books", "Available Books","Seasonal Recommendations","For You"),
         state="readonly",
-        width=18
+        width=23
     )
     filter_box.pack(side="left", padx=(8, 0))
 
@@ -86,7 +86,12 @@ def startGUI():
         for item in book_table.get_children():
             book_table.delete(item)
 
-        books_to_display = library.display_books(display_strategy)
+        if filter_var.get() == "Seasonal Recommendations":
+            books_to_display = library.seasonal_recommendations()
+        elif filter_var.get() == "For You":
+            books_to_display = library.personalized_recommendations()
+        else:
+            books_to_display = library.display_books(display_strategy)
 
         for book in books_to_display:
             status = "Borrowed" if book.is_borrowed else "Available"

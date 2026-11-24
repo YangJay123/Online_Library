@@ -15,6 +15,7 @@ class Library:
         self.connection = sqlite3.connect(self.database_name)
         self._create_tables()
         self._seed_database_if_needed()
+        self._seed_extra_books_if_needed()
         self.load_books()
         self._load_history()
 
@@ -81,6 +82,30 @@ class Library:
             self.connection.execute(
                 "INSERT INTO settings (name, value) VALUES (?, ?)",
                 ("sample_books_added", "1"),
+            )
+    def _seed_extra_books_if_needed(self):
+        seeded = self.connection.execute(
+            "SELECT value FROM settings WHERE name = 'extra_books_added'"
+        ).fetchone()
+        if seeded is not None:
+            return
+        extra_books = [
+            (4, "A Christmas Carol", "Charles Dickens", 1843, 5.99, "Christmas"),
+            (5, "The Nightmare Before Christmas", "Tim Burton", 1993, 6.99, "Christmas"),
+            (6, "The Shining", "Stephen King", 1977, 12.99, "Horror"),
+            (7, "Dracula", "Bram Stoker", 1897, 9.99, "Horror"),
+            (8, "Frankenstein", "Mary Shelley", 1818, 8.99, "Horror"),
+            (9, "Calculus: Early Transcendentals", "James Stewart", 2007, 150.00, "Textbook"),
+            (10, "Introduction to Algorithms", "Thomas H. Cormen", 2009, 80.00, "Textbook"),
+        ]
+        with self.connection:
+            self.connection.executemany("""
+                INSERT OR IGNORE INTO books (id, title, author, year, price, category)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, extra_books)
+            self.connection.execute(
+                "INSERT INTO settings (name, value) VALUES (?, ?)",
+                ("extra_books_added", "1"),
             )
 
     def load_books(self):
@@ -223,7 +248,7 @@ class Library:
         if month == 12:
             category = "Christmas"
         elif month == 10:
-            category = "Halloween"
+            category = "Horror"
         elif month == 8:
             category = "Textbook"
         else:
@@ -252,3 +277,5 @@ class Library:
             and book.id not in previously_used_ids
             and not book.is_borrowed
         ]
+
+   
