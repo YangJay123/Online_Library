@@ -150,6 +150,19 @@ class Library:
         self.connection.close()
 
     def add_book(self, book):
+        if (not isinstance(book.title, str)
+        or not isinstance(book.author, str)
+        or type(book.id) is not int
+        or book.id <= 0
+        or type(book.year) is not int
+        or book.year <= 0
+        or not isinstance(book.price, (int, float))
+        or isinstance(book.price, bool)
+        or book.price < 0
+        or self.search_ID(book.id) is not None):
+            return False
+        if not book.title.strip() or not book.author.strip() or  book.price < 0 or book.year > date.today().year or book.year < 0:
+            return False
         with self.connection:
             self.connection.execute("""
                 INSERT INTO books (id, title, author, year, price, category)
@@ -159,6 +172,7 @@ class Library:
                 book.price, book.category,
             ))
         self.books.append(book)
+        return True
 
     def display_books(self, display_strategy=None):
         if display_strategy is not None:

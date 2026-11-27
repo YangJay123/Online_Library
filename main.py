@@ -44,7 +44,21 @@ def startGUI():
         width=23
     )
     filter_box.pack(side="left", padx=(8, 0))
+    search_var = tk.StringVar()
+    search_entry = ttk.Entry(
+    filter_frame,
+    textvariable=search_var,
+    width=20
+    )
+    search_entry.pack(side="left", padx=(10, 0))
+    clear_button = ttk.Button(
+    filter_frame,
+    text="Clear",
+    command=lambda: search_var.set("")
+    )   
+    clear_button.pack(side="left", padx=(5, 0))
 
+    
     content_frame = ttk.Frame(main_frame)
     content_frame.pack(fill="both", expand=True)
 
@@ -93,6 +107,13 @@ def startGUI():
         else:
             books_to_display = library.display_books(display_strategy)
 
+        search_text = search_var.get().strip().lower()
+
+        books_to_display = [
+            book for book in books_to_display
+            if search_text in book.title.lower()
+        ]
+
         for book in books_to_display:
             status = "Borrowed" if book.is_borrowed else "Available"
             book_table.insert(
@@ -108,6 +129,7 @@ def startGUI():
                 )
             )
 
+    search_var.trace_add("write", lambda *_: refresh_table())
     def change_display_strategy(_event=None):
         nonlocal display_strategy
 
